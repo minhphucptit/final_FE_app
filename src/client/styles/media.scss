@@ -1,0 +1,123 @@
+@media screen and (max-width: 417px) {
+    h1{
+        font-size: 1.5em;
+    }
+
+    h2{
+        font-size: 0.8em;
+    }
+
+    article.current-trip * {
+        display: flex;
+        flex-flow: column;
+        justify-content: center;
+    }
+
+    .destination,
+    .departure,
+    .comeback {
+        font-size: 0.8em;
+        color: #330066;
+        font-weight: bolder;
+    }
+
+    button#weather {
+        font-size: 0.6em;
+    }
+
+    .countdow {
+        font-size: 0.6em;
+    }
+
+    .new-trip-info {
+        padding: 5px;
+        font-size: 0.6em;
+    }
+
+}
+
+@media screen and (max-width:500px) {
+    .weather {
+        .forecast {
+            .row {
+                display: flex;
+                flex-flow: column;
+            }
+        }
+    }
+    .trip{
+        .add-info {
+            .add-more-info{
+                .addLodging,
+                .notes {
+                    font-size: 0.8em;
+                    padding: 1px;
+                    margin: 1px;
+                }
+            }
+        }
+    }
+}
+
+@media (min-width: 600px) and (max-width: 1200px) {
+    .destination,
+    .departure,
+    .comeback {
+        font-size: 1.3em;
+        color: #330066;
+        font-weight: bolder;
+    }
+
+    .trip{
+        .add-info {
+            .add-more-info{
+                .addLodging,
+                .notes{
+                    font-size: 1.3em;
+                    padding: 1px;
+                    margin: 1px;
+                }
+            }
+        }
+    }
+
+    #img {
+        max-height: 20vw;
+        max-width: 20vw;
+    }
+}
+
+@media (min-width: 1201px) {
+    body{
+        margin-left: 200px;
+        * {
+           max-width: 70vw;
+        }
+        .destination,
+        .departure,
+        .comeback {
+            font-size: 1.3em;
+            color: #330066;
+            font-weight: bolder;
+        }
+
+        .trip{
+            .add-info {
+                .add-more-info{
+                    .addLodging,
+                    .notes {
+                        font-size: 1em;
+                        padding: 1px;
+                        margin: 1px;
+                    }
+                }
+            }
+        }
+
+        #img {
+            max-height: 20vw;
+            max-width: 20vw;
+        }
+    }
+
+}

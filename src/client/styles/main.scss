@@ -1,0 +1,74 @@
+body {
+    display: grid;
+    grid-template-columns: repeat(2 1fr);
+    grid-template-rows: 3 auto;
+    grid-template-areas:
+    "hd"
+    "tr"
+    "nt";
+    button#weather:hover,
+    #remove:hover,
+    #new-save:hover,
+    #new-remove:hover,
+    #lodging:hover,
+    #list:hover,
+    #notes:hover,
+    #print:hover,
+    .save-info:hover
+     {
+        background-color: #b8acd2;
+    };
+
+    * {
+      max-width: 95vw;
+    };
+}
+
+.trip {
+    background-color: #77aaf2;
+    grid-area: tr;
+    display: grid;
+    grid-template-columns: 2;
+    grid-template-rows: 1;
+    grid-template-areas:
+    "add tr"
+    "rm cd"
+    "ww ww";
+}
+
+.save-remove-trip {
+    margin: 10px;
+    display: flex;
+    flex-flow: row;
+    align-items: center;
+    justify-content: space-around;
+    * {
+        margin: 5px;
+    }
+}
+
+.current-trip {
+    grid-area: tr;
+    max-width: 70vw;
+    display: grid;
+    grid-template-columns: 2 auto;
+    grid-template-rows: 3 auto;
+    grid-template-areas:
+    "pr ds"
+    "pr dp"
+    "pr rt";
+
+    .destination,
+    .departure,
+    .comeback {
+        padding: 20px;
+        color: #330066;
+        font-weight: bolder;
+    }
+}
+
+.countdown {
+    padding: 10px;
+    color: #330066;
+    font-weight: bold;
+}

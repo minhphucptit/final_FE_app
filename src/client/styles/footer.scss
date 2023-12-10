@@ -1,0 +1,22 @@
+footer {
+    background-color: #606060FF;
+    h6{
+        text-align: center;
+    }
+    .apis{
+        background-color: #eb8b9b;
+        display: flex;
+        flex-flow: row;
+        align-items: center;
+        justify-content: space-evenly;
+        padding: 20px;
+        *   {
+            max-width: 25vw;
+            max-height: 50px;
+        }
+        :first-child {
+            max-width: 20vw;
+        }
+    }
+
+}
