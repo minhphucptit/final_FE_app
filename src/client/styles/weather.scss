@@ -5,14 +5,12 @@
     #weather {
         width: 100vw;
     }
-
     .row {
         display: flex;
         flex-flow: row;
         background-color: inherit;
         justify-content: center;
     }
-
     .cell {
         display: flex;
         flex-flow: column;
@@ -23,11 +21,9 @@
         flex-grow: 1;
         align-items: center;
     }
-
     .date {
         font-weight: bold;
     }
-
     .weatherButton{
         font-weight: bold;
         line-height: 3em;

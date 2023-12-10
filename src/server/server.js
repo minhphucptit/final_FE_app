@@ -1,184 +1,145 @@
+// server.js
 const express = require("express");
-const app = express();
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const routes = require("./routes");
+
+const app = express();
+const port = process.env.PORT || 8082;
+
 app.use(cors());
-
-const fetch = require('node-fetch');
-
-const dotenv = require('dotenv');
-dotenv.config();
-let api_key = process.env.api_key || 'phucptit';
-let weather_key = process.env.weather_key || '4c3a50cf079f4c078871dc67c40f5164';
-let pixabay_key = process.env.pixabay_key || '41183605-eced4143edc9cdfed07c265a3';
-
-app.use(function (req, res, next) {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    next();
-});
-
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
-
 app.use(express.static("dist"));
-const port = process.env.PORT|| 8082;
-// console.log(`Server is running on port ${port}`);
-
-app.get("/", function (req, res) {
-    res.sendFile("dist/index.html")
-})
+app.use("/", routes);
 
 const server = app.listen(port, () => {
-    const port = process.env.PORT || 8082;
     console.log(`Server is running on port ${port}`);
-})
+});
 
-// Main project object that stores all the information
-let projectData = {inputData: {}, geoData: {}, picture: {}}
+module.exports = server;
 
-app.post("/data", retrieveInput);
+// routes.js
+const express = require("express");
+const router = express.Router();
+const { handleDataRequest, handleForecastRequest } = require("./handlers");
 
-async function retrieveInput(req, res) {
-    console.log(req.body.data);
-    getInput(req, res)
-    .then ( () => {
-        getGeoInfo()
-        .then( () => {
-            pixabay()
-            .then( ()=> {
-                allData(req, res)
-            })
-        })
-    })
-}
+router.post("/data", handleDataRequest);
+router.get("/all", handleDataRequest);
+router.route("/forecast").post(handleDataRequest).get(handleForecastRequest);
 
-// The route to send mainobject to clint side
-app.get("/all", allData);
+module.exports = router;
 
-async function allData(req, res) {
-    res.send(projectData)
-}
+// handlers.js
+const fetch = require("node-fetch");
 
-
-// Receives input info from client side
-async function getInput(req, res) {
-    if (req) {
-        projectData.inputData = req.body.data
-        return projectData.inputData
-    }else{
-        console.log("the input is empty")
+async function handleDataRequest(req, res) {
+    try {
+        console.log(req.body.data);
+        const inputData = await getInput(req);
+        await getGeoInfo();
+        await pixabay();
+        allData(req, res);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Internal Server Error");
     }
 }
 
+async function getInput(req) {
+    if (req) {
+        return req.body.data;
+    } else {
+        throw new Error("The input is empty");
+    }
+}
 
-// API to fetch geo information regarding the input destination
-async function getGeoInfo(req, res) {
-
-const url = `http://api.geonames.org/searchJSON?q=${projectData.inputData.destination}&maxRows=10&username=${api_key}`
-
+async function getGeoInfo() {
+    const url = `http://api.geonames.org/searchJSON?q=${projectData.inputData.destination}&maxRows=10&username=${api_key}`;
     const response = await fetch(url);
     try {
         const geoInfo = await response.json();
-        if (geoInfo.totalResultsCount === 0){
-            return projectData.geoData = {};
+        if (geoInfo.totalResultsCount === 0) {
+            projectData.geoData = {};
         } else {
             projectData.geoData = {
                 latitude: geoInfo.geonames[0].lat,
                 longitude: geoInfo.geonames[0].lng,
                 country: geoInfo.geonames[0].countryName,
                 city: geoInfo.geonames[0].toponymName,
-                countryCode: geoInfo.geonames[0].countryCode
-            }
-            return projectData.geoData
+                countryCode: geoInfo.geonames[0].countryCode,
+            };
         }
     } catch (error) {
-        console.log("error", error)
+        console.log("Error fetching geo info", error);
+        throw new Error("Error fetching geo info");
     }
 }
 
-// API call to add picture of the city or of the country to the destination
-// On the client side, if there is no city of country img, will return initial picture
-async function pixabay () {
-    const city = encodeURIComponent(projectData.geoData.city)
-    const url = `https://pixabay.com/api/?key=${pixabay_key}&q=${city}&category=places&image_type=photo`
-    const response = await fetch(url)
+async function pixabay() {
+    const city = encodeURIComponent(projectData.geoData.city);
+    const url = `https://pixabay.com/api/?key=${pixabay_key}&q=${city}&category=places&image_type=photo`;
+    const response = await fetch(url);
     try {
         const data = await response.json();
         if (data.totalHits >= 1) {
-            projectData.picture = data.hits[0].largeImageURL
-            return projectData.picture, projectData
-        } else if (data.totalHits === 0)  { // if no city image is available,  will fetch county img
-            const country = encodeURIComponent(projectData.geoData.country)
-            const url = `https://pixabay.com/api/?key=${pixabay_key}&q=${country}&category=places&image_type=photo`
-            const response = await fetch(url)
-            try{
-                const data = await response.json();
-                if (data.totalHits === 0) {
-                    projectData.picture = ""
-                    return projectData.picture, projectData
+            projectData.picture = data.hits[0].largeImageURL;
+        } else if (data.totalHits === 0) {
+            const country = encodeURIComponent(projectData.geoData.country);
+            const countryUrl = `https://pixabay.com/api/?key=${pixabay_key}&q=${country}&category=places&image_type=photo`;
+            const countryResponse = await fetch(countryUrl);
+            try {
+                const countryData = await countryResponse.json();
+                if (countryData.totalHits > 0) {
+                    projectData.picture = countryData.hits[0].largeImageURL;
                 } else {
-                    projectData.picture = data.hits[0].largeImageURL
-                    return projectData.picture, projectData
+                    projectData.picture = "";
                 }
-            }catch(error) {
-                console.log(error)
+            } catch (error) {
+                console.log("Error fetching country image", error);
+                throw new Error("Error fetching country image");
             }
         }
-    }catch(error) {
-        console.log(error)
+    } catch (error) {
+        console.log("Error fetching city image", error);
+        throw new Error("Error fetching city image");
     }
 }
 
-
-// Main weather forecast object
-let weatherForecast = {};
-
-// Geo info object received fom localStorage
-let geoData = {};
-
-app.route("/forecast") // Using same route for post and get requests
-
-    .post(async function(req, res){
-        storageInfo(req, res)
-    })
-
-    .get(async function(req, res){
-        weatherbitForecast(geoData)
-        const geo = await weatherbitForecast(geoData)
+async function handleForecastRequest(req, res) {
+    try {
+        storageInfo(req);
+        await weatherbitForecast(geoData);
         res.send(weatherForecast);
-    })
-
-
-// Getting geo info from localStorage on the client side
-async function storageInfo(req, res) {
-    geoData = req.body.data;
-    return geoData
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Internal Server Error");
+    }
 }
 
+async function storageInfo(req) {
+    geoData = req.body.data;
+}
 
-// API to get weather forecast, uses global geoData object
 async function weatherbitForecast(geoData) {
-    const url = `https://api.weatherbit.io/v2.0/forecast/daily?&lat=${geoData.latitude}&lon=${geoData.longitude}&days=16&units=M&key=${weather_key}`
-    const response = await fetch(url)
+    const url = `https://api.weatherbit.io/v2.0/forecast/daily?&lat=${geoData.latitude}&lon=${geoData.longitude}&days=16&units=M&key=${weather_key}`;
+    const response = await fetch(url);
     try {
         const data = await response.json();
-        data.data.forEach( function(each) {
-            return weatherForecast[each.valid_date] = {
-               date: each.valid_date,
-               max_temp: each.max_temp,
-               min_temp: each.min_temp,
-               description: each.weather.description,
-               icon: each.weather.icon,
-               code: each.weather.code
-            }
+        data.data.forEach((each) => {
+            weatherForecast[each.valid_date] = {
+                date: each.valid_date,
+                max_temp: each.max_temp,
+                min_temp: each.min_temp,
+                description: each.weather.description,
+                icon: each.weather.icon,
+                code: each.weather.code,
+            };
         });
-        return weatherForecast
     } catch (error) {
-        console.log(error)
+        console.log("Error fetching weather forecast", error);
+        throw new Error("Error fetching weather forecast");
     }
 }
 
-// exporting functions and server for jest testings
-module.exports = server, getInput, storageInfo, weatherbitForecast;
+module.exports = { handleDataRequest, handleForecastRequest };

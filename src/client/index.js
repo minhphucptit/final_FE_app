@@ -17,20 +17,6 @@ import weatherbit from "./images/weatherbit.png";
 
 
 // Installing service worker for production mode only
-if (process.env.NODE_ENV === "production") {
-    // Check that service workers are supported
-    if ('serviceWorker' in navigator) {
-    // Use the window load event to keep the page load performant
-        window.addEventListener('load', () => {
-            console.log("Installing service workers in production")
-            navigator.serviceWorker.register('./service-worker.js');
-        });
-    } else {
-        console.log("Service worker installation skipped!");
-    }
-} else {
-    console.log("Service worker installation skipped!");
-}
 
 // Exporting main image for further use in other js files
 export async function imageMain () {
@@ -40,33 +26,16 @@ export async function imageMain () {
 
 imageMain();
 
-// Geonames picture
 let image = document.querySelector("#geoNames");
 image.src = geoNames
-
-// Weatherbit picture
 let weatherbitPic = document.querySelector("#weatherbit");
 weatherbitPic.src = weatherbit
-
-// Main funcion
 document.getElementById("new-save").addEventListener("click", generate);
-
-// Add lodging info to existing trip
 document.querySelector("#lodging").addEventListener("click", lodging);
-
-// Get weather forecast
 document.querySelector("#weather").addEventListener("click", weatherForecast);
-
-// Delete trip
 document.querySelector("#remove").addEventListener("click", removeTrip);
-
-// Clear the input fields
 document.querySelector("#new-remove").addEventListener("click", clearInput);
-
-// Add notes to existing trip
 document.querySelector("#notes").addEventListener("click", addNotes);
-
-// Use localStorage to fill in the trip info on load
 window.addEventListener("load", checkStorage)
 
 export {
